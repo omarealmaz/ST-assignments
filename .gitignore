@@ -1,0 +1,21 @@
+# Binaries and Build Artifacts
+*.o
+*.out
+aura
+femtoshell
+picoshell
+omarcat
+omarcp
+omarecho
+omarmv
+omarpwd
+fan_project/build/
+
+# Disk Images
+*.img
+disk1
+
+# System & Editor files
+.DS_Store
+*~
+*.swp
