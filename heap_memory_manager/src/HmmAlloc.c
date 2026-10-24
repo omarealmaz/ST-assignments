@@ -8,7 +8,7 @@
 #include "Hmm.h"
 
 meta_ptr head = NULL;
-meta_ptr last_block = NULL;
+void* heap_end = NULL;
 
 void remove_from_free_list(meta_ptr block){
 	if(!(is_free(block))){
@@ -82,10 +82,6 @@ void split_block(meta_ptr block, size_t size)
 	set_free(new_block);
 	update_footer(new_block);
 
-	if (block == last_block){
-		last_block = new_block;	
-	}
-
 	
 	block->size = size | (block->size & PREV_FREE_MASK);
 	insert_in_order(new_block);
@@ -94,12 +90,25 @@ void split_block(meta_ptr block, size_t size)
 
 meta_ptr expand_heap(size_t size)
 {
-	meta_ptr new_block = (meta_ptr) sbrk( ((size & SIZE_MASK) < MIN_INCREMENT) ? MIN_INCREMENT : ((size & SIZE_MASK)));
+	static int heap_init = 0; //heap initialized flag 
+	if(heap_init == 0){
+		heap_init = 1 ;
+		if(((int)sbrk(0) + 8 ) % 16 != 0){
+			sbrk(8);
+		}
+		heap_end = sbrk(0);
+	}
+
+	size_t inc = ((size & SIZE_MASK) < MIN_INCREMENT) ? MIN_INCREMENT : ((size & SIZE_MASK));
+	meta_ptr new_block = (meta_ptr) sbrk(inc);
 	if (new_block == (void *)-1)
 		return NULL;
-	new_block->size = ((size & SIZE_MASK) < MIN_INCREMENT) ? (MIN_INCREMENT): ((size & SIZE_MASK));
+
+	heap_end += inc ;	
+
+	new_block->size = inc;
 	
-	last_block = new_block;
+	//last_block = new_block;
 	return new_block;
 	
 }
@@ -136,7 +145,7 @@ void *HmmAlloc(size_t size)
 		}
 
 		clear_free(block);
-		if(block != last_block) clear_prev_free(phys_next(block));
+		if(!is_last(block)) clear_prev_free(phys_next(block));
 		return (void*)((char*)block + 8);	//start of data
 	}
 

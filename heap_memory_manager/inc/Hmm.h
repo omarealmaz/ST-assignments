@@ -28,7 +28,7 @@ typedef struct meta_block *meta_ptr;
     };
 
 extern meta_ptr head;
-extern meta_ptr last_block;
+extern void* heap_end;
 
 static inline void set_free(meta_ptr block){
 block->size |= FREE_MASK ;
@@ -72,6 +72,9 @@ static inline meta_ptr phys_prev(meta_ptr block){
 
 static inline void update_footer(meta_ptr block){
  *((size_t*)((char*)block + real_size(block) - FOOTER_SIZE )) = real_size(block);
+}
+static inline int is_last(meta_ptr block) {
+        return (void*)phys_next(block) >= heap_end;
 }
 
 

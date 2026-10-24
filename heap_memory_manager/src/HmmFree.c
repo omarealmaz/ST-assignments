@@ -7,7 +7,7 @@
 
 meta_ptr merge_free_blocks(meta_ptr block)
 {
-	if ((block != last_block) && is_free(phys_next(block))) {
+	if (!is_last(block) && is_free(phys_next(block))) {
 
 		meta_ptr next_block = phys_next(block);
 		remove_from_free_list(next_block);
@@ -15,9 +15,9 @@ meta_ptr merge_free_blocks(meta_ptr block)
 		block->size = (real_size(block) + real_size(next_block))|(prev_is_free(block) ? PREV_FREE_MASK : 0);
 		update_footer(block);
 
-		if (next_block == last_block) {
+		/*if (next_block == last_block) {
 			last_block = block;
-		}
+		}*/
 	}
 	if (prev_is_free(block)) {
 		meta_ptr prev_block = phys_prev(block);
@@ -25,9 +25,9 @@ meta_ptr merge_free_blocks(meta_ptr block)
 		//prev_block->next = block->next;
 		prev_block->size = (real_size(prev_block) + real_size(block));
 
-		if (block == last_block) {
+		/*if (is_last(block)) {
 			last_block = prev_block;
-		}
+		}*/
 		block = prev_block;
 		update_footer(block);
 	}
@@ -49,14 +49,14 @@ void HmmFree(void *ptr)
 	set_free(block);
 	update_footer(block);
 
-	if (block != last_block) {
+	if (!is_last(block)) {
             set_prev_free(phys_next(block));
         }
 
 	
-if (block == last_block && real_size(block) >= MIN_DECREMENT) {
+if (is_last(block) && real_size(block) >= MIN_DECREMENT) {
 	        sbrk(-(real_size(block)));
-            last_block = NULL;
+			heap_end -= real_size(block);
         } else {
             insert_in_order(block);
         }
