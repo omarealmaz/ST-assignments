@@ -7,6 +7,7 @@
 #include<string.h>
 #include "Hmm.h"
 
+pthread_mutex_t heap_lock = PTHREAD_MUTEX_INITIALIZER;
 meta_ptr head = NULL;
 void* heap_end = NULL;
 
@@ -116,26 +117,32 @@ meta_ptr expand_heap(size_t size)
 
 void *HmmAlloc(size_t size)
 {
- 	size_t aligned_size = ALIGN(size + 8);
+
+	if (size == 0) {
+		return NULL;
+	}
+
+ 	size_t aligned_size = ALIGN(size + HEADER_SIZE);
 	if (aligned_size >= size) {
 		size = aligned_size;
 	} else {
-		return NULL;
-	}
-	if (size == 0) {
 		return NULL;
 	}
 	if(size < 32){
 		size = 32;
 
 	} 
-		meta_ptr block = find_block(size);
 
-		if (block == NULL) {
+	pthread_mutex_lock(&heap_lock);
+
+	meta_ptr block = find_block(size);
+
+	if (block == NULL) {
 			block = expand_heap(size);
 		}
-		if (block == NULL) {
-			return NULL;
+	if (block == NULL) {
+	pthread_mutex_unlock(&heap_lock);
+		return NULL;
 		}
 
 		remove_from_free_list(block);
@@ -146,7 +153,9 @@ void *HmmAlloc(size_t size)
 
 		clear_free(block);
 		if(!is_last(block)) clear_prev_free(phys_next(block));
-		return (void*)((char*)block + 8);	//start of data
+
+	pthread_mutex_unlock(&heap_lock);
+		return (void*)((char*)block + HEADER_SIZE);	//start of data
 	}
 
 void *hmmCalloc(size_t nmemb, size_t size)
@@ -193,5 +202,5 @@ size_t hmmSize(void *ptr)
   	if (ptr == NULL)
 		return 0;
 	meta_ptr block = (meta_ptr)((char*)ptr - 8);
-	return (real_size(block) - 8 );
+	return (real_size(block) - HEADER_SIZE );
 }

@@ -7,11 +7,10 @@
 #define HMM_H
 
 #include <stddef.h>
+#include <pthread.h>
 
 #define HEADER_SIZE 8
 #define FOOTER_SIZE 8
-#define OVERHEAD 16
-#define FREE_HEADER_SIZE 24
 #define FREE_MASK  ((size_t)1)       // ...00000001
 #define SIZE_MASK  (~((size_t)3))    // ...11111100
 #define PREV_FREE_MASK ((size_t)2)   // ...00000010
@@ -29,6 +28,8 @@ typedef struct meta_block *meta_ptr;
 
 extern meta_ptr head;
 extern void* heap_end;
+extern pthread_mutex_t heap_lock;
+
 
 static inline void set_free(meta_ptr block){
 block->size |= FREE_MASK ;

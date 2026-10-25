@@ -37,13 +37,20 @@ meta_ptr merge_free_blocks(meta_ptr block)
 
 void HmmFree(void *ptr)
 {
+
   //ptr is start of data
-	if (ptr == NULL) 
-		return;
+	if (ptr == NULL){ 
+	return;
+	}
+	
+	pthread_mutex_lock(&heap_lock);
 
 	meta_ptr block = (meta_ptr)( (char*)ptr - 8);
 
-	if(is_free(block)) return;	
+	if(is_free(block)) {
+	pthread_mutex_unlock(&heap_lock);
+	return;
+	}	
 
 	block = merge_free_blocks(block);
 	set_free(block);
@@ -54,10 +61,12 @@ void HmmFree(void *ptr)
         }
 
 	
-if (is_last(block) && real_size(block) >= MIN_DECREMENT) {
+	if (is_last(block) && real_size(block) >= MIN_DECREMENT) {
 	        sbrk(-(real_size(block)));
 			heap_end -= real_size(block);
         } else {
             insert_in_order(block);
-        }
-}
+		}
+
+pthread_mutex_unlock(&heap_lock);
+	}
