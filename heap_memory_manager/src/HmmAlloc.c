@@ -108,8 +108,10 @@ meta_ptr expand_heap(size_t size)
 	heap_end += inc ;	
 
 	new_block->size = inc;
-	
-	//last_block = new_block;
+
+	if(prev_is_free(new_block)){
+		set_prev_free(new_block);
+	}
 	return new_block;
 	
 }
