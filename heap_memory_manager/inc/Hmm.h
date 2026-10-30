@@ -7,6 +7,7 @@
 #define HMM_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include <pthread.h>
 
 #define HEADER_SIZE 8

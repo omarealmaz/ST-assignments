@@ -19,11 +19,11 @@ void remove_from_free_list(meta_ptr block){
 		clear_free(block);
 	return;
 	}
-	if (block->prev != NULL) {
+	if (block == head) {
+        head = block->next;
+    } else if (block->prev != NULL) {
             block->prev->next = block->next;
-        } else {
-            head = block->next;
-        }
+        } 
     
         if (block->next != NULL) {
             block->next->prev = block->prev;
@@ -94,7 +94,7 @@ meta_ptr expand_heap(size_t size)
 	static int heap_init = 0; //heap initialized flag 
 	if(heap_init == 0){
 		heap_init = 1 ;
-		if(((int)sbrk(0) + 8 ) % 16 != 0){
+		if(((uintptr_t)sbrk(0) + 8 ) % 16 != 0){
 			sbrk(8);
 		}
 		heap_end = sbrk(0);

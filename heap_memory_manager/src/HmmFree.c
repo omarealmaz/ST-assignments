@@ -23,8 +23,7 @@ meta_ptr merge_free_blocks(meta_ptr block)
 		meta_ptr prev_block = phys_prev(block);
 		remove_from_free_list(prev_block);
 		//prev_block->next = block->next;
-		prev_block->size = (real_size(prev_block) + real_size(block));
-
+    prev_block->size = (real_size(prev_block) + real_size(block)) | (prev_is_free(prev_block) ? PREV_FREE_MASK : 0);
 		/*if (is_last(block)) {
 			last_block = prev_block;
 		}*/
